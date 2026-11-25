@@ -1,0 +1,74 @@
+# ===================================================================
+#  STM32 / Keil MDK 项目 .gitignore
+# ===================================================================
+
+# ---------- Keil 构建产物 ----------
+# Objects/ 目录含 .o/.axf/.hex/.d 等编译产物，本机 27.9MB
+Objects/
+
+# Listings/ 含 .map 和 .lst 列表文件
+Listings/
+
+# 其他可能的输出目录
+Output/
+Debug/
+Release/
+
+# 单独散落的编译产物
+*.o
+*.obj
+*.d
+*.axf
+*.hex
+*.bin
+*.elf
+*.map
+*.lst
+*.crf
+*.dep
+*.lnp
+*.iex
+*.sct
+*.htm
+*.build_log.htm
+*.sbr
+*.tra
+
+# ---------- Keil 个人配置文件 ----------
+# .uvguix.* 包含窗口布局、断点位置、以及**用户名**，
+# 每人不同，提交会造成无意义的冲突。
+Project.uvguix.*
+
+# .uvoptx 也含部分个人设置（调试器选择、断点等），
+# 但团队协作时通常需要它来共享调试配置，保留提交。
+# 如果你的团队不需要，取消下面这行的注释：
+# Project.uvoptx
+
+# ---------- 工程文件备份 ----------
+# 改动 .uvprojx 前手动做的备份
+*.uvprojx.bak
+*.uvprojx.orig
+*.uvprojx~
+
+# ---------- 根目录的临时/开发辅助文件 ----------
+# 构建日志（每次构建覆盖）
+build_link.log
+
+# 根目录的 gif_data.h 是 20 帧旧版本（240.8KB），
+# 工程实际使用的是 Hardware/gif_data.h（8 帧，96.6KB）。
+# 保留在硬盘但不入版本库，避免混淆。
+/gif_data.h
+
+# ---------- 参考资料 ----------
+# 4.6MB 的演示动图，与固件无关。若需随仓库分发可取消注释。
+deepseek-ni-keng.gif
+
+# ---------- 编辑器 / 操作系统 ----------
+.idea/
+.vscode/
+*.swp
+*~
+
+.DS_Store
+Thumbs.db
+desktop.ini

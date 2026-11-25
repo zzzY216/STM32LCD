@@ -1,0 +1,28 @@
+/**
+ * @file    sys.h  (PC 验证用桩文件)
+ * @brief   只提供 proto.c 需要的类型定义。
+ * @details 仅用于 Test/sim 目录，编译 PC 验证程序时优先于真实 sys.h。
+ *          真实固件编译用工程里的 System/Sys.h，不受影响。
+ */
+#ifndef __SYS_H
+#define __SYS_H
+
+#include <stdint.h>
+
+typedef int32_t  s32;
+typedef int16_t  s16;
+typedef int8_t   s8;
+
+typedef const int32_t sc32;
+typedef const int16_t sc16;
+typedef const int8_t  sc8;
+
+typedef uint32_t u32;
+typedef uint16_t u16;
+typedef uint8_t  u8;
+
+typedef const uint32_t uc32;
+typedef const uint16_t uc16;
+typedef const uint8_t  uc8;
+
+#endif /* __SYS_H */
