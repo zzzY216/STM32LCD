@@ -22,6 +22,14 @@ void LCD_ShowPicture(u16 x,u16 y,u16 length,u16 width,const u8 pic[]);//显示�
 
 void LCD_ShowPicture_Scale(u16 x, u16 y, u16 w, u16 h, u8 scale, const u16 palette[16], const u8 pic[]); // 放大显示函数
 
+/* 任意尺寸拉伸显示：把 w*h 的 16 色压缩图拉伸到 dst_w*dst_h 画出。
+ * 用于让内置 GIF（64x64）铺满 240x240 屏幕，消除四周黑边。
+ * 与 LCD_ShowPicture_Scale 的区别：后者只支持整数倍放大（1/2/3/4），
+ * 64x64 用 3 倍只有 192x192，四周会各留 24 像素黑边。 */
+void LCD_ShowPicture_Stretch(u16 x, u16 y, u16 w, u16 h,
+                             u16 dst_w, u16 dst_h,
+                             const u16 palette[16], const u8 pic[]);
+
 /* ===== 以下为 ESP32 串口通讯模块新增接口（不改变上面任何已有函数） ===== */
 
 /**

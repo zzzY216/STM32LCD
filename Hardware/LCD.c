@@ -207,6 +207,82 @@ void LCD_ShowPicture_Scale(u16 x, u16 y, u16 w, u16 h, u8 scale, const u16 palet
     }
 }
 
+/******************************************************************************
+      函数说明：16 色压缩图片【任意尺寸拉伸】显示
+      入口数据：x,y      屏幕起点坐标
+                w,h      图片原始宽高（如 64x64）
+                dst_w    目标宽度（如 240）
+                dst_h    目标高度（如 240）
+                palette  16 色调色板
+                pic      4bit 压缩的像素数据（每字节 2 像素，高 nibble 在前）
+      返回值：  无
+
+      【为什么需要这个函数】
+        原 LCD_ShowPicture_Scale 只支持整数倍放大。
+        内置 GIF 是 64x64，整数倍只能是 1/2/3 倍：
+            3 倍 = 192x192，在 240x240 屏幕上四边各剩 24 像素黑边。
+        用本函数把 64x64 直接拉伸到 240x240（比例 3.75 倍），
+        屏幕可以完全铺满，而且**不需要重新生成 GIF 数据**，
+        不占用任何 Flash。
+
+      【算法：最近邻采样】
+        对每个目标像素 (dx, dy)，反推出源像素：
+            sx = dx * w / dst_w
+            sy = dy * h / dst_h
+        用整数乘法（先乘后除）避免浮点，也不会有累积误差。
+
+        例如 64 -> 240：dx=0..239，sx = dx*64/240
+        每 15 个目标像素推进 4 个源像素，整体均匀。
+
+      【性能】
+        240x240 = 57600 次像素写入，软件 SPI 每次约 1us，
+        一帧约 58ms。GIF 帧间隔 50ms，可接受。
+        相比原来的 192x192（约 37ms）多了 21ms。
+******************************************************************************/
+void LCD_ShowPicture_Stretch(u16 x, u16 y, u16 w, u16 h,
+                             u16 dst_w, u16 dst_h,
+                             const u16 palette[16], const u8 pic[])
+{
+    u16 dx, dy;
+    u16 src_x, src_y;
+    u16 row_bytes;
+    u32 row_offset;
+    u8  byte_val, color_idx;
+
+    if (w == 0u || h == 0u || dst_w == 0u || dst_h == 0u) return;
+
+    row_bytes = (u16)((w + 1u) / 2u);
+
+    /* 设置写入窗口为整个目标区域 */
+    LCD_Address_Set(x, y, (u16)(x + dst_w - 1u), (u16)(y + dst_h - 1u));
+
+    for (dy = 0u; dy < dst_h; dy++)
+    {
+        /* 纵向映射：目标行 -> 源行（先乘后除，整数运算） */
+        src_y = (u16)(((u32)dy * (u32)h) / (u32)dst_h);
+        row_offset = (u32)src_y * (u32)row_bytes;
+
+        for (dx = 0u; dx < dst_w; dx++)
+        {
+            /* 横向映射：目标列 -> 源列 */
+            src_x = (u16)(((u32)dx * (u32)w) / (u32)dst_w);
+
+            /* 从 4bit 压缩数据里取出该像素的调色板索引 */
+            byte_val = pic[row_offset + (src_x >> 1)];
+            if ((src_x & 0x01u) == 0u)
+            {
+                color_idx = (u8)((byte_val >> 4) & 0x0F);
+            }
+            else
+            {
+                color_idx = (u8)(byte_val & 0x0F);
+            }
+
+            LCD_WR_DATA(palette[color_idx]);
+        }
+    }
+}
+
 /* ==================================================================
  * 以下为 ESP32 串口通讯模块新增功能
  * 说明：全部是"新增"，不修改上面任何已有函数的行为，

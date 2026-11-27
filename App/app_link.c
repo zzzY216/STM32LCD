@@ -29,12 +29,31 @@ static struct {
 /** GIF 播放帧间隔（毫秒） */
 #define APP_GIF_FRAME_MS        50u
 
-/** GIF 显示放大倍数（与 main.c 原值一致） */
-#define APP_GIF_SCALE           3u
+/* 【GIF 显示方式说明】
+ *
+ * 内置 GIF 数据是 64x64（见 gif_data.h 的 GIF_WIDTH/GIF_HEIGHT）。
+ *
+ * 原来用 LCD_ShowPicture_Scale(..., scale=3)：
+ *     64 * 3 = 192，居中放在 (24,24)
+ *     屏幕 240x240 -> 四边各剩 (240-192)/2 = 24 像素黑边
+ *
+ * 现在改用 LCD_ShowPicture_Stretch，直接拉伸到 240x240：
+ *     - 屏幕完全铺满，没有黑边
+ *     - 不需要重新生成 GIF 数据，Flash 占用 0 增长
+ *     - 代价：比例 3.75 倍不是整数，像素重复略不均匀（最近邻采样）
+ *
+ * Flash 余量只有约 5.9KB，重新生成 80x80 的 GIF 要 25.6KB
+ * （8帧）或 19.2KB（6帧），前者装不下、后者要牺牲帧数，
+ * 所以选择运行时拉伸。
+ */
 
-/** GIF 显示位置 */
-#define APP_GIF_X               24u
-#define APP_GIF_Y               24u
+/** GIF 目标显示尺寸（拉伸到整个屏幕） */
+#define APP_GIF_DST_W           LCD_W
+#define APP_GIF_DST_H           LCD_H
+
+/** GIF 显示位置（从左上角开始，铺满） */
+#define APP_GIF_X               0u
+#define APP_GIF_Y               0u
 
 /* ==================== 前向声明 ==================== */
 
@@ -264,11 +283,12 @@ static void app_play_gif_step(u32 now_ms)
     }
     s_app.frame_last_ms = now_ms;
 
-    LCD_ShowPicture_Scale((u16)APP_GIF_X, (u16)APP_GIF_Y,
-                          (u16)GIF_WIDTH, (u16)GIF_HEIGHT,
-                          (u8)APP_GIF_SCALE,
-                          gif_palette,
-                          gif_frames[s_app.frame_index]);
+    /* 拉伸铺满 240x240（原来是整数 3 倍放大到 192x192，四周留黑边） */
+    LCD_ShowPicture_Stretch((u16)APP_GIF_X, (u16)APP_GIF_Y,
+                            (u16)GIF_WIDTH, (u16)GIF_HEIGHT,
+                            (u16)APP_GIF_DST_W, (u16)APP_GIF_DST_H,
+                            gif_palette,
+                            gif_frames[s_app.frame_index]);
 
     s_app.frame_index++;
     if (s_app.frame_index >= GIF_FRAMES) {
