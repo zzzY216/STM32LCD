@@ -11,7 +11,7 @@
 
 /* ==================== 引脚与参数 ==================== */
 
-/** USART1：PA9 = TX，PA10 = RX */
+/** USART1：PA9 = TX 发数据，PA10 = RX 收数据*/
 #define UART_LINK_TX_PIN        GPIO_Pin_9
 #define UART_LINK_RX_PIN        GPIO_Pin_10
 #define UART_LINK_GPIO_PORT     GPIOA
